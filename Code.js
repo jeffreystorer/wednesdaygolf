@@ -1,10 +1,8 @@
-const UI = SpreadsheetApp.getUi();
 const testingStrTo = 'jeffrey.storer@gmail.com';
 const liveStrTo = makeLiveStrTo();
 
 function test() {
-  const INOUTWANT = getInOutWant('Want to Play', 26);
-  console.log(INOUTWANT);
+  processEdit('In/Out', 10);
 }
 
 function getNamesOnWaitList() {
@@ -33,6 +31,21 @@ function clearWaitList() {
   const lastRow = sheet.getLastRow();
   if (lastRow > 0) {
     sheet.deleteRows(1, lastRow);
+  }
+}
+
+function clearConfirmLists() {
+  const sheets = ['In/Out', 'Want To Play'];
+  sheets.forEach(clearSheet);
+  function clearSheet(item) {
+    let sheetName = item;
+    const sheet =
+      SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    const lastRow = sheet.getLastRow();
+    let i;
+    for (i = lastRow; i > 1; i--) {
+      sheet?.deleteRow(i);
+    }
   }
 }
 
@@ -126,30 +139,22 @@ function getInOutWant(sheetName, row) {
 }
 
 function processEdit(sheetName, row) {
-  //get the last name
   const playerName = getLastName(sheetName, row);
-  //check whether it's an in or out
-  if (playerName) {
+  if (playerName !== null) {
     const InOutWant = getInOutWant(sheetName, row);
-    //if it's an out, set value to N
-    //switch on sheetName
+    console.log(InOutWant + ' 1 ' + playerName);
     switch (sheetName) {
       case 'In/Out':
         switch (InOutWant) {
           case 'In':
-            //if it's an in, check whether value is Y
             const currentYNCW = getYNCW(playerName);
             if (currentYNCW === 'Y') {
               setYNCW(playerName, 'C');
             } else {
-              //if not, treat it like a W request
               processWantEdit(playerName);
             }
             break;
           case 'Out':
-            //get the last name
-            const playerName = getLastName(sheetName, row);
-            //set value to N
             setYNCW(playerName, 'N');
             break;
           default:
@@ -159,10 +164,8 @@ function processEdit(sheetName, row) {
       case 'Want to Play':
         switch (InOutWant) {
           case 'Want':
-            //check if the value is a Y
             const currentYNCW = getYNCW(playerName);
             if (currentYNCW === 'Y') {
-              //if so, set value to C
               setYNCW(playerName, 'C');
             } else {
               processWantEdit(playerName);
@@ -661,6 +664,8 @@ function deleteCurrentWeek() {
   sheet1.getRange('B:B').activate();
   sheet1.getActiveRangeList().setBackground(null);
   addNewWeek();
+  clearWaitList();
+  clearConfirmLists();
 }
 
 function addNewWeek() {
